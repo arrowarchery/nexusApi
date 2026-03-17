@@ -16,6 +16,7 @@ public class GetEventRecurrenceEndpoint(NexusDbContext db)
     public override void Configure()
     {
         Get("/eventrecurrences/{id}");
+        AllowAnonymous(); // Ajouté pour correspondre à tes autres endpoints
     }
 
     public override async Task HandleAsync(GetEventRecurrenceRequest req, CancellationToken ct)
@@ -33,13 +34,17 @@ public class GetEventRecurrenceEndpoint(NexusDbContext db)
         {
             Id = eventRecurrence.Id,
             Type = eventRecurrence.Type, 
-            Title =  eventRecurrence.Title,
+            Title = eventRecurrence.Title,
             Frequency = eventRecurrence.Frequency,
-            DateStart =  eventRecurrence.DateStart,
+            DateStart = eventRecurrence.DateStart,
             DateEnd = eventRecurrence.DateEnd,
-            StartTime =  eventRecurrence.StartTime,
-            EndTime =  eventRecurrence.EndTime,
-            Day = eventRecurrence.Day
+            StartTime = eventRecurrence.StartTime,
+            EndTime = eventRecurrence.EndTime,
+            Day = eventRecurrence.Day,
+            
+            ClassId = eventRecurrence.ClassId,
+            SportId = eventRecurrence.SportId,
+            ExtraActivityId = eventRecurrence.ExtraActivityId
         };
 
         await Send.OkAsync(responseDto, ct);

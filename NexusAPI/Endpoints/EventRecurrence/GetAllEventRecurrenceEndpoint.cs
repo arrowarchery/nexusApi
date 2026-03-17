@@ -14,23 +14,22 @@ public class GetAllEventRecurrenceEndpoint(NexusDbContext nexusDbContext) : Endp
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        
         List<GetEventRecurrenceDto> responseDto = await nexusDbContext.EventRecurrence
             .Select(a => new GetEventRecurrenceDto()
-                {
-                    Id = a.Id,
-                    Type = a.Type, 
-                    Title = a.Title,
-                    Frequency = a.Frequency,
-                    DateStart = a.DateStart,
-                    DateEnd = a.DateEnd,
-                    StartTime = a.StartTime,
-                    EndTime = a.EndTime,
-                    Day = a.Day
-                }
-            ).ToListAsync(ct);
-
+            {
+                Id = a.Id,
+                Type = a.Type,
+                Title = a.Title,
+                Frequency = a.Frequency,
+                DateStart = a.DateStart,
+                DateEnd = a.DateEnd,
+                StartTime = a.StartTime,
+                EndTime = a.EndTime,
+                Day = a.Day,
+                ClassId = a.ClassId,
+                SportId = a.SportId,
+                ExtraActivityId = a.ExtraActivityId
+            }).ToListAsync(ct);
         await Send.OkAsync(responseDto, ct);
     }
-
 }

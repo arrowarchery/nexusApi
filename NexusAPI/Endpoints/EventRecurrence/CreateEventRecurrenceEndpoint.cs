@@ -24,7 +24,11 @@ public class CreateEventRecurrenceEndpoint(NexusDbContext db)
             DateEnd = req.DateEnd,
             StartTime = req.StartTime,
             EndTime = req.EndTime,
-            Day = req.Day
+            Day = req.Day,
+            // Ajout des liens d'activité
+            ClassId = req.ClassId,
+            SportId = req.SportId,
+            ExtraActivityId = req.ExtraActivityId
         };
 
         db.EventRecurrence.Add(eventRecurrence);
@@ -33,16 +37,19 @@ public class CreateEventRecurrenceEndpoint(NexusDbContext db)
         var responseDto = new GetEventRecurrenceDto
         {
             Id = eventRecurrence.Id,
-            Type      = eventRecurrence.Type, 
-            Title =  eventRecurrence.Title,
+            Type = eventRecurrence.Type,
+            Title = eventRecurrence.Title,
             Frequency = eventRecurrence.Frequency,
             DateStart = eventRecurrence.DateStart,
             DateEnd = eventRecurrence.DateEnd,
             StartTime = eventRecurrence.StartTime,
             EndTime = eventRecurrence.EndTime,
-            Day = eventRecurrence.Day
+            Day = eventRecurrence.Day,
+            ClassId = eventRecurrence.ClassId,
+            SportId = eventRecurrence.SportId,
+            ExtraActivityId = eventRecurrence.ExtraActivityId
         };
 
-        await Send.OkAsync(responseDto, cancellation: ct);
+        await Send.OkAsync(responseDto, ct);
     }
 }

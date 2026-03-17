@@ -92,12 +92,13 @@ namespace NexusAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("ClassId")
+                        .HasColumnType("int");
+
                     b.Property<DateOnly?>("DateEnd")
-                        .IsRequired()
                         .HasColumnType("date");
 
                     b.Property<DateOnly?>("DateStart")
-                        .IsRequired()
                         .HasColumnType("date");
 
                     b.Property<int?>("Day")
@@ -106,7 +107,13 @@ namespace NexusAPI.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time");
 
+                    b.Property<int?>("ExtraActivityId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Frequency")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SportId")
                         .HasColumnType("int");
 
                     b.Property<TimeOnly>("StartTime")
@@ -119,6 +126,12 @@ namespace NexusAPI.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClassId");
+
+                    b.HasIndex("ExtraActivityId");
+
+                    b.HasIndex("SportId");
 
                     b.ToTable("EventRecurrence");
                 });
@@ -328,6 +341,27 @@ namespace NexusAPI.Migrations
                     b.HasOne("NexusAPI.Models.Activity", null)
                         .WithMany("Activities")
                         .HasForeignKey("ActivityId");
+                });
+
+            modelBuilder.Entity("NexusAPI.Models.EventRecurrence", b =>
+                {
+                    b.HasOne("NexusAPI.Models.Class", "Class")
+                        .WithMany()
+                        .HasForeignKey("ClassId");
+
+                    b.HasOne("NexusAPI.Models.ExtraActivity", "ExtraActivity")
+                        .WithMany()
+                        .HasForeignKey("ExtraActivityId");
+
+                    b.HasOne("NexusAPI.Models.Sport", "Sport")
+                        .WithMany()
+                        .HasForeignKey("SportId");
+
+                    b.Navigation("Class");
+
+                    b.Navigation("ExtraActivity");
+
+                    b.Navigation("Sport");
                 });
 
             modelBuilder.Entity("NexusAPI.Models.Session", b =>

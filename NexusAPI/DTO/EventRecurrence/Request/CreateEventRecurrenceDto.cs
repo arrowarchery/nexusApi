@@ -1,6 +1,5 @@
 ﻿using NexusAPI.Models.Enums;
 
-
 namespace NexusAPI.DTO.EventRecurrence.Request;
 
 public class CreateEventRecurrenceDto
@@ -12,8 +11,10 @@ public class CreateEventRecurrenceDto
     public DateOnly? DateEnd { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
-
     public DayOfWeek? Day { get; set; }
-    
-    
+
+    // Ajouts pour lier l'activité
+    public int? ClassId { get; set; }
+    public int? SportId { get; set; }
+    public int? ExtraActivityId { get; set; }
 }
