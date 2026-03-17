@@ -18,6 +18,7 @@ public class CreateEventRecurrenceEndpoint(NexusDbContext db)
         var eventRecurrence = new Models.EventRecurrence
         {
             Type = req.Type,
+            Title = req.Title,
             Frequency = req.Frequency,
             DateStart = req.DateStart,
             DateEnd = req.DateEnd,
