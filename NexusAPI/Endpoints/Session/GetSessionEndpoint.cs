@@ -52,7 +52,10 @@ public class GetSessionEndpoint(NexusDbContext db)
             DateTimeStart = session.DateTimeStart,
             DateTimeEnd = session.DateTimeEnd,
             Status = session.Status,
-            Achievements = achievements
+            Achievements = achievements,
+            ClassId = session.ClassId,
+            SportId = session.SportId,
+            ExtraActivityId = session.ExtraActivityId,
         };
 
         await Send.OkAsync(responseDto, ct);
