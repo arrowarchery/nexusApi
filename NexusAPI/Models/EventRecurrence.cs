@@ -6,11 +6,11 @@ namespace NexusAPI.Models;
 public class EventRecurrence
 {
     [Key] public int Id { get; set; }
-        public string? Title { get; set; }
-    [Required] public RecurrenceType Type { get; set; }
-    [Required] public int Frequency { get; set; }
-    [Required] public DateOnly? DateStart { get; set; }
-    [Required] public DateOnly? DateEnd { get; set; }
+    public string? Title { get; set; }
+     public RecurrenceType Type { get; set; }
+     public int Frequency { get; set; }
+     public DateOnly? DateStart { get; set; }
+     public DateOnly? DateEnd { get; set; }
     
      public TimeOnly StartTime { get; set; }
      public TimeOnly EndTime { get; set; }
