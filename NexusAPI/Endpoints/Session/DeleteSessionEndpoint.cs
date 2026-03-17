@@ -13,7 +13,7 @@ public class DeleteSessionEndpoint(NexusDbContext db) : Endpoint<DeleteSessionRe
 {
     public override void Configure()
     {
-        Delete("/sessions/{@id}", x => new { x.Id });
+        Delete("/sessions/{id}", x => new { x.Id });
         AllowAnonymous();
     }
 
