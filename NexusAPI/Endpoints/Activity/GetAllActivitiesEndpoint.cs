@@ -1,10 +1,12 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using NexusAPI.DTO.Activity.Response;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.Activity;
 
-public class GetAllActivitiesEndpoint(NexusDbContext nexusDbContext) : EndpointWithoutRequest<List<GetActivityDto>>
+public class GetAllActivitiesEndpoint(NexusDbContext db, IMapper mapper) 
+    : EndpointWithoutRequest<List<GetActivityDto>>
 {
     public override void Configure()
     {
@@ -14,33 +16,35 @@ public class GetAllActivitiesEndpoint(NexusDbContext nexusDbContext) : EndpointW
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var activities = await nexusDbContext.Activities.ToListAsync(ct);
+        var activities = await db.Activities.ToListAsync(ct);
 
-        var responseDto = activities.Select(a => new GetActivityDto
+        // 1. On mappe la liste de base
+        var responseDto = mapper.Map<List<GetActivityDto>>(activities);
+
+        // 2. On enrichit les champs calculés (TypeLabel et Room)
+        // On fait une boucle ou un Zip pour ne pas perdre la logique polymorphique
+        for (int i = 0; i < activities.Count; i++)
         {
-            Id = a.Id,
-            Name = a.Name,
-            Description = a.Description,
-            StartTime = a.DateTimeStart, 
-            EndTime = a.DateTimeEnd,
-        
-            Room = a switch
+            var a = activities[i];
+            var dto = responseDto[i];
+
+            dto.Room = a switch
             {
-                NexusAPI.Models.Class c => c.Room,
-                NexusAPI.Models.Sport s => s.Place,
-                NexusAPI.Models.ExtraActivity e => e.Place,
+                Models.Class c => c.Room,
+                Models.Sport s => s.Place,
+                Models.ExtraActivity e => e.Place,
                 _ => "Nexus Zone"
-            },
+            };
 
-            TypeLabel = a switch
+            dto.TypeLabel = a switch
             {
-                NexusAPI.Models.Class _ => "Cours",
-                NexusAPI.Models.Sport _ => "Sport",
-                NexusAPI.Models.ExtraActivity _ => "Extra",
+                Models.Class _ => "Cours",
+                Models.Sport _ => "Sport",
+                Models.ExtraActivity _ => "Extra",
                 _ => "Activité"
-            }
-        }).ToList();
+            };
+        }
 
-        await Send.OkAsync(responseDto, cancellation: ct);
+        await Send.OkAsync(responseDto, ct);
     }
 }

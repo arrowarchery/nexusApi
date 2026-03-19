@@ -1,24 +1,23 @@
 ﻿using NexusAPI.DTO.Achievement.Request;
 using NexusAPI.DTO.Achievement.Response;
-using NexusAPI.DTO.Session.Response;
+using IMapper = AutoMapper.IMapper;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using NexusAPI.Models;
 
 namespace NexusAPI.Endpoints.Achievement;
 
-public class UpdateAchievementEndpoint(NexusDbContext db)
+public class UpdateAchievementEndpoint(NexusDbContext db, IMapper mapper)
     : Endpoint<UpdateAchievementDto, GetAchievementDto>
 {
     public override void Configure()
     {
-        Put("/achievements/{id}");
+        Put("/achievements/{Id}");
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(UpdateAchievementDto req, CancellationToken ct)
     {
-        // Charger l'achievement avec ses liaisons
         var achievementToEdit = await db.Achievements
             .Include(a => a.SessionAchievements)
             .SingleOrDefaultAsync(x => x.Id == req.Id, ct);
@@ -29,17 +28,14 @@ public class UpdateAchievementEndpoint(NexusDbContext db)
             return;
         }
 
-        // Mettre à jour les champs
-        achievementToEdit.Name = req.Name;
-        achievementToEdit.Description = req.Description;
+        // Mise à jour des propriétés simples via le Mapper
+        mapper.Map(req, achievementToEdit);
 
-        // Mettre à jour les liaisons avec les sessions si fournies
+        // Gestion manuelle des relations SessionIds (Table de liaison)
         if (req.SessionIds != null)
         {
-            // Supprimer les anciennes liaisons
             db.SessionAchievements.RemoveRange(achievementToEdit.SessionAchievements);
 
-            // Ajouter les nouvelles liaisons
             foreach (var sessionId in req.SessionIds)
             {
                 db.SessionAchievements.Add(new SessionAchievement
@@ -52,29 +48,12 @@ public class UpdateAchievementEndpoint(NexusDbContext db)
 
         await db.SaveChangesAsync(ct);
 
-        // Préparer la liste des sessions liées pour le DTO de réponse
-        var sessions = await db.SessionAchievements
-            .Where(sa => sa.AchievementId == achievementToEdit.Id)
-            .Include(sa => sa.Session)
-            .Select(sa => new GetSessionDto
-            {
-                Id = sa.Session.Id,
-                DateTimeStart = sa.Session.DateTimeStart,
-                DateTimeEnd = sa.Session.DateTimeEnd,
-                Status = sa.Session.Status,
-                Achievements = new List<GetAchievementDto>() // vide pour éviter récursion infinie
-            })
-            .ToListAsync(ct);
+        // Recharger avec les nouvelles sessions pour la réponse
+        var updatedEntity = await db.Achievements
+            .Include(a => a.SessionAchievements)
+            .ThenInclude(sa => sa.Session)
+            .FirstAsync(a => a.Id == achievementToEdit.Id, ct);
 
-        // Construire le DTO de réponse
-        var responseDto = new GetAchievementDto
-        {
-            Id = achievementToEdit.Id,
-            Name = achievementToEdit.Name,
-            Description = achievementToEdit.Description,
-            Sessions = sessions
-        };
-
-        await Send.OkAsync(responseDto, ct);
+        await Send.OkAsync(mapper.Map<GetAchievementDto>(updatedEntity), ct);
     }
 }

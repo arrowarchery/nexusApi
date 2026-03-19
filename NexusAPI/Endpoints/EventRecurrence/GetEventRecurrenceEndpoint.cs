@@ -1,7 +1,7 @@
 ﻿using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using NexusAPI.DTO.EventRecurrence.Response;
-using NexusAPI.Models;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.EventRecurrence;
 
@@ -10,18 +10,18 @@ public class GetEventRecurrenceRequest
     public int Id { get; set; }
 }
 
-public class GetEventRecurrenceEndpoint(NexusDbContext db)
+public class GetEventRecurrenceEndpoint(NexusDbContext db, IMapper mapper)
     : Endpoint<GetEventRecurrenceRequest, GetEventRecurrenceDto>
 {
     public override void Configure()
     {
-        Get("/eventrecurrences/{id}");
-        AllowAnonymous(); // Ajouté pour correspondre à tes autres endpoints
+        Get("/eventrecurrences/{Id}");
+        AllowAnonymous();
     }
 
     public override async Task HandleAsync(GetEventRecurrenceRequest req, CancellationToken ct)
     {
-        Models.EventRecurrence? eventRecurrence = await db.EventRecurrence
+        var eventRecurrence = await db.EventRecurrence
             .SingleOrDefaultAsync(e => e.Id == req.Id, ct);
 
         if (eventRecurrence == null)
@@ -30,23 +30,6 @@ public class GetEventRecurrenceEndpoint(NexusDbContext db)
             return;
         }
 
-        var responseDto = new GetEventRecurrenceDto
-        {
-            Id = eventRecurrence.Id,
-            Type = eventRecurrence.Type, 
-            Title = eventRecurrence.Title,
-            Frequency = eventRecurrence.Frequency,
-            DateStart = eventRecurrence.DateStart,
-            DateEnd = eventRecurrence.DateEnd,
-            StartTime = eventRecurrence.StartTime,
-            EndTime = eventRecurrence.EndTime,
-            Day = eventRecurrence.Day,
-            
-            ClassId = eventRecurrence.ClassId,
-            SportId = eventRecurrence.SportId,
-            ExtraActivityId = eventRecurrence.ExtraActivityId
-        };
-
-        await Send.OkAsync(responseDto, ct);
+        await Send.OkAsync(mapper.Map<GetEventRecurrenceDto>(eventRecurrence), ct);
     }
 }

@@ -1,45 +1,35 @@
 using FastEndpoints;
-using NexusAPI.DTO.Activity.Request;
-using NexusAPI.DTO.Activity.Response;
+using IMapper = AutoMapper.IMapper;
 using NexusAPI.DTO.ExtraActivity.Request;
 using NexusAPI.DTO.ExtraActivity.Response;
 
 namespace NexusAPI.Endpoints.ExtraActivity;
 
-public class UpdateExtraActivityEndpoint(NexusDbContext nexusDbContext) : Endpoint<UpdateExtraActivityDto, GetExtraActivityDto>
+public class UpdateExtraActivityEndpoint(NexusDbContext db, IMapper mapper) 
+    : Endpoint<UpdateExtraActivityDto, GetExtraActivityDto>
 {
     public override void Configure()
     {
-        Put("/extraactivity");
+        Put("/extraactivity/{Id}");
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(UpdateExtraActivityDto req, CancellationToken ct)
     {
-        Models.ExtraActivity extraActivity = new()
-        {
-            Name = req.Name,
-            Description = req.Description, 
-            Resource = req.Resource,
-            Organiser = req.Organiser,
-            Place = req.Place,
-            Theme = req.Theme,
-        };
+        // On charge l'existant
+        var existingActivity = await db.ExtraActivities.FindAsync(new object[] { req.Id }, ct);
         
-        nexusDbContext.ExtraActivities.Update(extraActivity);
-        await nexusDbContext.SaveChangesAsync(ct);
+        if (existingActivity == null)
+        {
+            await Send.NotFoundAsync(ct);
+            return;
+        }
 
-        GetExtraActivityDto response = new()
-        {
-            Id = extraActivity.Id,
-            Name = extraActivity.Name,
-            Description = extraActivity.Description,
-            Resource = extraActivity.Resource,
-            Organiser = extraActivity.Organiser,
-            Place = extraActivity.Place,
-            Theme = extraActivity.Theme,
-        };
+        // Le mapper met à jour l'entité existante
+        mapper.Map(req, existingActivity);
         
-        await Send.OkAsync(response);
+        await db.SaveChangesAsync(ct);
+
+        await Send.OkAsync(mapper.Map<GetExtraActivityDto>(existingActivity), ct);
     }
 }

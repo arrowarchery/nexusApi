@@ -1,10 +1,12 @@
 ﻿using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using NexusAPI.DTO.EventRecurrence.Response;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.EventRecurrence;
 
-public class GetAllEventRecurrenceEndpoint(NexusDbContext nexusDbContext) : EndpointWithoutRequest<List<GetEventRecurrenceDto>>
+public class GetAllEventRecurrenceEndpoint(NexusDbContext db, IMapper mapper) 
+    : EndpointWithoutRequest<List<GetEventRecurrenceDto>>
 {
     public override void Configure()
     {
@@ -14,22 +16,11 @@ public class GetAllEventRecurrenceEndpoint(NexusDbContext nexusDbContext) : Endp
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        List<GetEventRecurrenceDto> responseDto = await nexusDbContext.EventRecurrence
-            .Select(a => new GetEventRecurrenceDto()
-            {
-                Id = a.Id,
-                Type = a.Type,
-                Title = a.Title,
-                Frequency = a.Frequency,
-                DateStart = a.DateStart,
-                DateEnd = a.DateEnd,
-                StartTime = a.StartTime,
-                EndTime = a.EndTime,
-                Day = a.Day,
-                ClassId = a.ClassId,
-                SportId = a.SportId,
-                ExtraActivityId = a.ExtraActivityId
-            }).ToListAsync(ct);
+        var recurrences = await db.EventRecurrence.AsNoTracking().ToListAsync(ct);
+        
+        // Mapping direct de la liste
+        var responseDto = mapper.Map<List<GetEventRecurrenceDto>>(recurrences);
+        
         await Send.OkAsync(responseDto, ct);
     }
 }

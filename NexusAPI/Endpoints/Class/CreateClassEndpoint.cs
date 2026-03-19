@@ -1,10 +1,11 @@
 using FastEndpoints;
 using NexusAPI.DTO.Class.Request;
 using NexusAPI.DTO.Class.Response;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.Class;
 
-public class CreateClassEndpoint(NexusDbContext nexusDbContext) : Endpoint<CreateClassDto, GetClassDto>
+public class CreateClassEndpoint(NexusDbContext db, IMapper mapper) : Endpoint<CreateClassDto, GetClassDto>
 {
     public override void Configure()
     {
@@ -14,31 +15,15 @@ public class CreateClassEndpoint(NexusDbContext nexusDbContext) : Endpoint<Creat
 
     public override async Task HandleAsync(CreateClassDto req, CancellationToken ct)
     {
-        Models.Class @class = new()
-        {
-            Name = req.Name,
-            Description = req.Description,
-            Subject = req.Subject,
-            Teacher = req.Teacher,
-            Room = req.Room,
-            Objective = req.Objective,
-        };
+        // Mapping DTO -> Entity
+        var @class = mapper.Map<Models.Class>(req);
         
-        nexusDbContext.Activities.Add(@class);
-        await nexusDbContext.SaveChangesAsync(ct);
+        db.Activities.Add(@class);
+        await db.SaveChangesAsync(ct);
         
-        Console.WriteLine($"Created class ");
-
-        GetClassDto classDto = new()
-        {
-            Name = @class.Name,
-            Description = @class.Description,
-            Subject = @class.Subject,
-            Teacher = @class.Teacher,
-            Room = @class.Room,
-            Objective = @class.Objective,
-        };
+        // Mapping Entity -> DTO de réponse
+        var response = mapper.Map<GetClassDto>(@class);
         
-        await nexusDbContext.AddAsync(classDto, ct);
+        await Send.OkAsync(response, ct);
     }
 }

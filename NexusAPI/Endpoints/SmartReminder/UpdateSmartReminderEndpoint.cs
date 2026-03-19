@@ -2,21 +2,22 @@
 using NexusAPI.DTO.SmartReminder.Response;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.SmartReminder;
 
-public class UpdateSmartReminderEndpoint(NexusDbContext db)
+public class UpdateSmartReminderEndpoint(NexusDbContext db, IMapper mapper)
     : Endpoint<UpdateSmartReminderDto, GetSmartReminderDto>
 {
     public override void Configure()
     {
-        Put("/smartreminders/{id}");
+        Put("/smartreminders/{Id}");
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(UpdateSmartReminderDto req, CancellationToken ct)
     {
-        Models.SmartReminder? smartreminderToEdit = await db.SmartReminders
+        var smartreminderToEdit = await db.SmartReminders
             .SingleOrDefaultAsync(x => x.Id == req.Id, ct);
 
         if (smartreminderToEdit == null)
@@ -25,23 +26,11 @@ public class UpdateSmartReminderEndpoint(NexusDbContext db)
             return;
         }
 
-        smartreminderToEdit.Id = req.Id;
-        smartreminderToEdit.DateAlert = req.DateAlert;
-        smartreminderToEdit.TimeAlert = req.TimeAlert;
-        smartreminderToEdit.Type = req.Type;
-        smartreminderToEdit.Status = req.Status;
+        // Le mapper met à jour l'entité existante
+        mapper.Map(req, smartreminderToEdit);
 
         await db.SaveChangesAsync(ct);
 
-        var responseDto = new GetSmartReminderDto()
-        {
-            Id = smartreminderToEdit.Id,
-            DateAlert = smartreminderToEdit.DateAlert,
-            TimeAlert = smartreminderToEdit.TimeAlert,
-            Type = smartreminderToEdit.Type,
-            Status = smartreminderToEdit.Status,
-        };
-
-        await Send.OkAsync(responseDto, ct);
+        await Send.OkAsync(mapper.Map<GetSmartReminderDto>(smartreminderToEdit), ct);
     }
 }

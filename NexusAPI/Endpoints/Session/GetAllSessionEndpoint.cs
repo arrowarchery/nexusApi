@@ -1,11 +1,11 @@
 ﻿using NexusAPI.DTO.Session.Response;
-using NexusAPI.DTO.Achievement.Response;
+using IMapper = AutoMapper.IMapper;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 
 namespace NexusAPI.Endpoints.Session;
 
-public class GetAllSessionEndpoint(NexusDbContext db)
+public class GetAllSessionEndpoint(NexusDbContext db, IMapper mapper)
     : EndpointWithoutRequest<List<GetSessionDto>>
 {
     public override void Configure()
@@ -16,26 +16,15 @@ public class GetAllSessionEndpoint(NexusDbContext db)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var responseDto = await db.Sessions
+        var sessions = await db.Sessions
+            .Include(s => s.Class)
+            .Include(s => s.Sport)
+            .Include(s => s.ExtraActivity)
             .Include(s => s.SessionAchievements)
             .ThenInclude(sa => sa.Achievement)
-            .Select(s => new GetSessionDto
-            {
-                Id = s.Id,
-                DateTimeStart = s.DateTimeStart,
-                DateTimeEnd = s.DateTimeEnd,
-                Status = s.Status,
-                Achievements = s.SessionAchievements
-                    .Select(sa => new GetAchievementDto
-                    {
-                        Id = sa.Achievement.Id,
-                        Name = sa.Achievement.Name,
-                        Description = sa.Achievement.Description
-                    })
-                    .ToList()
-            })
-            .ToListAsync<GetSessionDto>(ct);
+            .AsNoTracking()
+            .ToListAsync(ct);
 
-        await Send.OkAsync(responseDto, ct);
+        await Send.OkAsync(mapper.Map<List<GetSessionDto>>(sessions), ct);
     }
 }

@@ -1,12 +1,11 @@
 ﻿using NexusAPI.DTO.SmartReminder.Request;
 using NexusAPI.DTO.SmartReminder.Response;
 using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
-using NexusAPI.Models;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.SmartReminder;
 
-public class CreateSmartReminderEndpoint(NexusDbContext db)
+public class CreateSmartReminderEndpoint(NexusDbContext db, IMapper mapper)
     : Endpoint<CreateSmartReminderDto, GetSmartReminderDto>
 {
     public override void Configure()
@@ -17,25 +16,13 @@ public class CreateSmartReminderEndpoint(NexusDbContext db)
 
     public override async Task HandleAsync(CreateSmartReminderDto req, CancellationToken ct)
     {
-        var smartreminder = new Models.SmartReminder()
-        {
-            DateAlert = req.DateAlert,
-            TimeAlert = req.TimeAlert,
-            Type = req.Type,
-            Status = req.Status,
-        };
+        // Mapping DTO -> Modèle
+        var smartreminder = mapper.Map<Models.SmartReminder>(req);
         
         db.SmartReminders.Add(smartreminder);
         await db.SaveChangesAsync(ct);
 
-        var response = new GetSmartReminderDto()
-        {
-            DateAlert = req.DateAlert,
-            TimeAlert = req.TimeAlert,
-            Type = req.Type,
-            Status = req.Status,
-        };
-        
-        await Send.OkAsync(response, ct);
+        // On renvoie l'objet créé (mappé en DTO)
+        await Send.OkAsync(mapper.Map<GetSmartReminderDto>(smartreminder), ct);
     }
 }

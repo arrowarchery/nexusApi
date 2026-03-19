@@ -1,11 +1,11 @@
 ﻿using NexusAPI.DTO.SmartReminder.Response;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using NexusAPI.DTO.Session.Response;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.Session;
 
-public class GetAllSmartReminderEndpoint(NexusDbContext db)
+public class GetAllSmartReminderEndpoint(NexusDbContext db, IMapper mapper)
     : EndpointWithoutRequest<List<GetSmartReminderDto>>
 {
     public override void Configure()
@@ -16,16 +16,10 @@ public class GetAllSmartReminderEndpoint(NexusDbContext db)
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var responseDto = await db.SmartReminders
-            .Select(a => new GetSmartReminderDto
-            {
-                Id = a.Id,
-                DateAlert = a.DateAlert,
-                TimeAlert = a.TimeAlert,
-                Type = a.Type,
-                Status = a.Status,
-            })
-            .ToListAsync(ct);
+        var reminders = await db.SmartReminders.AsNoTracking().ToListAsync(ct);
+
+        // Mapping de la liste entière
+        var responseDto = mapper.Map<List<GetSmartReminderDto>>(reminders);
 
         await Send.OkAsync(responseDto, ct);
     }

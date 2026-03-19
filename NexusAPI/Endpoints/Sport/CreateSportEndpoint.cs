@@ -1,10 +1,11 @@
 using FastEndpoints;
 using NexusAPI.DTO.Sport.Request;
 using NexusAPI.DTO.Sport.Response;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.Sport;
 
-public class CreateSportEndpoint(NexusDbContext nexusDbContext) : Endpoint<CreateSportDto, GetSportDto>
+public class CreateSportEndpoint(NexusDbContext db, IMapper mapper) : Endpoint<CreateSportDto, GetSportDto>
 {
     public override void Configure()
     {
@@ -14,31 +15,13 @@ public class CreateSportEndpoint(NexusDbContext nexusDbContext) : Endpoint<Creat
 
     public override async Task HandleAsync(CreateSportDto req, CancellationToken ct)
     {
-        Models.Sport sport = new()
-        {
-            Name = req.Name,
-            Description = req.Description,
-            Type = req.Type,
-            Place = req.Place,
-            Duration = req.Duration,
-            Intensity = req.Intensity,
-        };
+        // Mapping DTO -> Entité
+        var sport = mapper.Map<Models.Sport>(req);
         
-        nexusDbContext.Sports.Add(sport);
-        await nexusDbContext.SaveChangesAsync(ct);
+        db.Sports.Add(sport);
+        await db.SaveChangesAsync(ct);
         
-        Console.WriteLine($"Created sport {sport.Name}");
-
-        GetSportDto sportDto = new()
-        {
-            Name = sport.Name,
-            Description = sport.Description,
-            Type = sport.Type,
-            Place = sport.Place,
-            Duration = sport.Duration,
-            Intensity = sport.Intensity,
-        };
-        
-        await nexusDbContext.AddAsync(sportDto, ct);
+        // Mapping Entité -> DTO de réponse
+        await Send.OkAsync(mapper.Map<GetSportDto>(sport), ct);
     }
 }

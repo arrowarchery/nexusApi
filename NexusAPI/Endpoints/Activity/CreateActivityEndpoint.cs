@@ -1,10 +1,12 @@
 using FastEndpoints;
 using NexusAPI.DTO.Activity.Request;
 using NexusAPI.DTO.Activity.Response;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.Activity;
 
-public class CreateActivityEndpoint(NexusDbContext nexusDbContext) : Endpoint<CreateActivityDto, GetActivityDto>
+public class CreateActivityEndpoint(NexusDbContext db, IMapper mapper) 
+    : Endpoint<CreateActivityDto, GetActivityDto>
 {
     public override void Configure()
     {
@@ -14,23 +16,15 @@ public class CreateActivityEndpoint(NexusDbContext nexusDbContext) : Endpoint<Cr
 
     public override async Task HandleAsync(CreateActivityDto req, CancellationToken ct)
     {
-        Models.Activity activity = new()
-        {
-            Name = req.Name,
-            Description = req.Description,
-        };
+        // DTO -> Model
+        var activity = mapper.Map<Models.Activity>(req);
         
-        nexusDbContext.Activities.Add(activity);
-        await nexusDbContext.SaveChangesAsync(ct);
+        db.Activities.Add(activity);
+        await db.SaveChangesAsync(ct);
         
-        Console.WriteLine($"Created activity {activity.Name}");
-
-        GetActivityDto activityDto = new()
-        {
-            Name = activity.Name,
-            Description = activity.Description,
-        };
+        // Model -> DTO
+        var response = mapper.Map<GetActivityDto>(activity);
         
-        await nexusDbContext.AddAsync(activityDto, ct);
+        await Send.OkAsync(response, ct);
     }
 }

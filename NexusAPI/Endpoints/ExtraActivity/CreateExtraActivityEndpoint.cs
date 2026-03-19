@@ -1,10 +1,12 @@
 using FastEndpoints;
 using NexusAPI.DTO.ExtraActivity.Request;
 using NexusAPI.DTO.ExtraActivity.Response;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.ExtraActivity;
 
-public class CreateExtraActivityEndpoint(NexusDbContext nexusDbContext) : Endpoint<CreateExtraActivityDto, GetExtraActivityDto>
+public class CreateExtraActivityEndpoint(NexusDbContext db, IMapper mapper) 
+    : Endpoint<CreateExtraActivityDto, GetExtraActivityDto>
 {
     public override void Configure()
     {
@@ -14,32 +16,13 @@ public class CreateExtraActivityEndpoint(NexusDbContext nexusDbContext) : Endpoi
 
     public override async Task HandleAsync(CreateExtraActivityDto req, CancellationToken ct)
     {
-        Models.ExtraActivity extraactivity = new()
-        {
-            Name = req.Name,
-            Description = req.Description,
-            Organiser = req.Organiser,
-            Place = req.Place,
-            Theme =  req.Theme,
-            Resource = req.Resource,
-            
-        };
+        // Mapping DTO -> Entité
+        var extraactivity = mapper.Map<Models.ExtraActivity>(req);
         
-        nexusDbContext.ExtraActivities.Add(extraactivity);
-        await nexusDbContext.SaveChangesAsync(ct);
+        db.ExtraActivities.Add(extraactivity);
+        await db.SaveChangesAsync(ct);
         
-        Console.WriteLine($"Created extraActivity {extraactivity.Name}");
-
-        GetExtraActivityDto activityDto = new()
-        {
-            Name = extraactivity.Name,
-            Description = extraactivity.Description,
-            Organiser = extraactivity.Organiser,
-            Place = extraactivity.Place,
-            Theme = extraactivity.Theme,
-            Resource = extraactivity.Resource,
-        };
-        
-        await nexusDbContext.AddAsync(activityDto, ct);
+        // Mapping Entité -> DTO de réponse
+        await Send.OkAsync(mapper.Map<GetExtraActivityDto>(extraactivity), ct);
     }
 }

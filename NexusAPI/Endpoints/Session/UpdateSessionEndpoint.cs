@@ -1,24 +1,22 @@
 ﻿using NexusAPI.DTO.Session.Request;
 using NexusAPI.DTO.Session.Response;
-using NexusAPI.DTO.Achievement.Response;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using NexusAPI.Models;
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.Session;
 
-public class UpdateSessionEndpoint(NexusDbContext db)
+public class UpdateSessionEndpoint(NexusDbContext db, IMapper mapper)
     : Endpoint<UpdateSessionDto, GetSessionDto>
 {
     public override void Configure()
     {
-        Put("/sessions/{id}");
+        Put("/sessions/{Id}");
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(UpdateSessionDto req, CancellationToken ct)
     {
-        // Charger la session avec ses achievements
         var sessionToEdit = await db.Sessions
             .Include(s => s.SessionAchievements)
             .ThenInclude(sa => sa.Achievement)
@@ -30,33 +28,18 @@ public class UpdateSessionEndpoint(NexusDbContext db)
             return;
         }
 
-        // Mettre à jour les champs
-        sessionToEdit.DateTimeStart = req.DateTimeStart;
-        sessionToEdit.DateTimeEnd = req.DateTimeEnd;
-        sessionToEdit.Status = req.Status;
+        // Mise à jour automatique des champs simples
+        mapper.Map(req, sessionToEdit);
 
         await db.SaveChangesAsync(ct);
 
-        // Préparer la liste des achievements pour le DTO
-        var achievements = sessionToEdit.SessionAchievements
-            .Select(sa => new GetAchievementDto
-            {
-                Id = sa.Achievement.Id,
-                Name = sa.Achievement.Name,
-                Description = sa.Achievement.Description
-            })
-            .ToList();
+        // On recharge pour avoir les noms d'activité à jour dans la réponse
+        var result = await db.Sessions
+            .Include(s => s.Class)
+            .Include(s => s.Sport)
+            .Include(s => s.ExtraActivity)
+            .FirstAsync(s => s.Id == sessionToEdit.Id, ct);
 
-        // Construire le DTO de réponse
-        var responseDto = new GetSessionDto
-        {
-            Id = sessionToEdit.Id,
-            DateTimeStart = sessionToEdit.DateTimeStart,
-            DateTimeEnd = sessionToEdit.DateTimeEnd,
-            Status = sessionToEdit.Status,
-            Achievements = achievements
-        };
-
-        await Send.OkAsync(responseDto, ct);
+        await Send.OkAsync(mapper.Map<GetSessionDto>(result), ct);
     }
 }

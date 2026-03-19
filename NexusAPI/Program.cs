@@ -6,6 +6,8 @@ using NexusAPI;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
+
 builder.Services
     .AddAuthenticationJwtBearer(s => s.SigningKey = "ThisIsASuperSecretJwtKeyThatIsAtLeast32CharsLong")
     .AddAuthentication();

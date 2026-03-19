@@ -1,11 +1,12 @@
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using NexusAPI.DTO.Activity.Response;
+using IMapper = AutoMapper.IMapper;
 using NexusAPI.DTO.ExtraActivity.Response;
 
 namespace NexusAPI.Endpoints.ExtraActivity;
 
-public class GetAllExtraActivitiesEndpoint(NexusDbContext nexusDbContext) : EndpointWithoutRequest<List<GetExtraActivityDto>>
+public class GetAllExtraActivitiesEndpoint(NexusDbContext db, IMapper mapper) 
+    : EndpointWithoutRequest<List<GetExtraActivityDto>>
 {
     public override void Configure()
     {
@@ -15,21 +16,11 @@ public class GetAllExtraActivitiesEndpoint(NexusDbContext nexusDbContext) : Endp
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        
-        List<GetExtraActivityDto> responseDto = await nexusDbContext.ExtraActivities
-            .Select(a => new GetExtraActivityDto()
-                {
-                    Id = a.Id,
-                    Name = a.Name,
-                    Description = a.Description,
-                    Organiser =  a.Organiser,
-                    Place = a.Place,
-                    Theme = a.Theme,
-                    Resource = a.Resource,
-                }
-            ).ToListAsync(ct);
+        var extraActivities = await db.ExtraActivities.AsNoTracking().ToListAsync(ct);
+
+        // Mapping de la liste complète
+        var responseDto = mapper.Map<List<GetExtraActivityDto>>(extraActivities);
 
         await Send.OkAsync(responseDto, ct);
     }
-
 }

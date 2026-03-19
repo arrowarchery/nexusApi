@@ -113,6 +113,9 @@ namespace NexusAPI.Migrations
                     b.Property<int>("Frequency")
                         .HasColumnType("int");
 
+                    b.Property<string>("RecurrenceType")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("SportId")
                         .HasColumnType("int");
 
@@ -121,9 +124,6 @@ namespace NexusAPI.Migrations
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

@@ -1,7 +1,7 @@
 ﻿using NexusAPI.DTO.SmartReminder.Response;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-
+using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.SmartReminder;
 
@@ -10,37 +10,26 @@ public class GetSmartReminderRequest
     public int Id { get; set; }
 }
 
-public class GetSmartReminderEndpoint(NexusDbContext db)
+public class GetSmartReminderEndpoint(NexusDbContext db, IMapper mapper)
     : Endpoint<GetSmartReminderRequest, GetSmartReminderDto>
 {
     public override void Configure()
     {
-        Get("/smartreminders/{@id}", x => new { x.Id });
+        Get("/smartreminders/{Id}");
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(GetSmartReminderRequest req, CancellationToken ct)
     {
-        Models.SmartReminder? smartReminder = await db
-            .SmartReminders
-            .SingleOrDefaultAsync(x => x.Id == req.Id, cancellationToken: ct);
+        var smartReminder = await db.SmartReminders
+            .SingleOrDefaultAsync(x => x.Id == req.Id, ct);
 
         if (smartReminder == null)
         {
-            Console.WriteLine("Aucun rappel intelligent avec l'ID {req.Id} trouvé.");
             await Send.NotFoundAsync(ct);
             return;
         }
 
-        GetSmartReminderDto responseDto = new()
-        {
-            Id = smartReminder.Id,
-            DateAlert = smartReminder.DateAlert,
-            TimeAlert = smartReminder.TimeAlert,
-            Type = smartReminder.Type,
-            Status = smartReminder.Status,
-        };
-        await Send.OkAsync(responseDto, ct);
-
+        await Send.OkAsync(mapper.Map<GetSmartReminderDto>(smartReminder), ct);
     }
 }

@@ -499,3 +499,6 @@ C:\Users\mathy\RiderProjects\nexusApi\NexusAPI\obj\Debug\net8.0\refint\NexusAPI.
 C:\Users\mathy\RiderProjects\nexusApi\NexusAPI\obj\Debug\net8.0\NexusAPI.pdb
 C:\Users\mathy\RiderProjects\nexusApi\NexusAPI\obj\Debug\net8.0\NexusAPI.genruntimeconfig.cache
 C:\Users\mathy\RiderProjects\nexusApi\NexusAPI\obj\Debug\net8.0\ref\NexusAPI.dll
+C:\Users\mathy\RiderProjects\nexusApi\NexusAPI\bin\Debug\net8.0\AutoMapper.dll
+C:\Users\mathy\RiderProjects\nexusApi\NexusAPI\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
+C:\Users\mathy\RiderProjects\nexusApi\NexusAPI\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll

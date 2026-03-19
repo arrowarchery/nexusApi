@@ -9,5 +9,4 @@ public class GetAchievementDto
     public string? Description { get; set; }
     
     public List<GetSessionDto> Sessions { get; set; } = new();
-
 }
