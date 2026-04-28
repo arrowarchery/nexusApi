@@ -8,8 +8,6 @@ public class GetEventRecurrenceDto
     public string? Title { get; set; }
     public DateOnly? DateStart { get; set; }
     public DateOnly? DateEnd { get; set; }
-    public TimeOnly? StartTime { get; set; }
-    public TimeOnly? EndTime { get; set; }
     public DayOfWeek? Day { get; set; }
 
     // Ajouts pour renvoyer les IDs au Frontend
