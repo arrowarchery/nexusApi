@@ -10,7 +10,7 @@ public class UpdateActivityEndpoint(NexusDbContext db, IMapper mapper)
 {
     public override void Configure()
     {
-        Put("/activity/{Id}");
+        Put("/api/activity/{Id}");
         AllowAnonymous();
     }
 

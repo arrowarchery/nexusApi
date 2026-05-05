@@ -9,14 +9,7 @@ public class Session
     
     public int LoginId { get; set; }
 
-    public int? ClassId { get; set; }
-    public Class? Class { get; set; }
-
-    public int? SportId { get; set; }
-    public Sport? Sport { get; set; }
-
-    public int? ExtraActivityId { get; set; }
-    public ExtraActivity? ExtraActivity { get; set; }
+    public ICollection<Activity> Activities { get; set; } = new List<Activity>();
 
     public ICollection<SessionAchievement> SessionAchievements { get; set; } = new List<SessionAchievement>();
 }

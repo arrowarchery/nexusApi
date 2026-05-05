@@ -17,9 +17,7 @@ public class GetAllSessionEndpoint(NexusDbContext db, IMapper mapper)
     public override async Task HandleAsync(CancellationToken ct)
     {
         var sessions = await db.Sessions
-            .Include(s => s.Class)
-            .Include(s => s.Sport)
-            .Include(s => s.ExtraActivity)
+            .Include(s => s.Activities) // Inclus toutes les classes, sports et extras hérités
             .Include(s => s.SessionAchievements)
             .ThenInclude(sa => sa.Achievement)
             .AsNoTracking()

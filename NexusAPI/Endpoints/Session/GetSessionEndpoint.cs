@@ -22,9 +22,7 @@ public class GetSessionEndpoint(NexusDbContext db, IMapper mapper)
     public override async Task HandleAsync(GetSessionRequest req, CancellationToken ct)
     {
         var session = await db.Sessions
-            .Include(s => s.Class)
-            .Include(s => s.Sport)
-            .Include(s => s.ExtraActivity)
+            .Include(s => s.Activities)
             .Include(s => s.SessionAchievements)
             .ThenInclude(sa => sa.Achievement)
             .SingleOrDefaultAsync(s => s.Id == req.Id, ct);

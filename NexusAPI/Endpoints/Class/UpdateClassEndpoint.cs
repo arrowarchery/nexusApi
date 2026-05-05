@@ -9,7 +9,7 @@ public class UpdateClassEndpoint(NexusDbContext db, IMapper mapper) : Endpoint<U
 {
     public override void Configure()
     {
-        Put("/class/{Id}"); // Ajout de l'ID dans la route pour plus de clarté
+        Put("/api/class/{Id}"); // Ajout de l'ID dans la route pour plus de clarté
         AllowAnonymous();
     }
 

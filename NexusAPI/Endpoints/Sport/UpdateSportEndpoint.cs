@@ -9,7 +9,7 @@ public class UpdateSportEndpoint(NexusDbContext db, IMapper mapper) : Endpoint<U
 {
     public override void Configure()
     {
-        Put("/sport/{Id}");
+        Put("/api/sport/{Id}");
         AllowAnonymous();
     }
 

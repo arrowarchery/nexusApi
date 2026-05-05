@@ -1,7 +1,7 @@
-﻿using NexusAPI.DTO.Session.Request;
-using NexusAPI.DTO.Session.Response;
-using FastEndpoints;
+﻿using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using NexusAPI.DTO.Session.Request;
+using NexusAPI.DTO.Session.Response;
 using IMapper = AutoMapper.IMapper;
 
 namespace NexusAPI.Endpoints.Session;
@@ -11,13 +11,14 @@ public class UpdateSessionEndpoint(NexusDbContext db, IMapper mapper)
 {
     public override void Configure()
     {
-        Put("/sessions/{Id}");
+        Put("/api/sessions/{Id}");
         AllowAnonymous();
     }
 
     public override async Task HandleAsync(UpdateSessionDto req, CancellationToken ct)
     {
         var sessionToEdit = await db.Sessions
+            .Include(s => s.Activities) // On inclut la nouvelle liste
             .Include(s => s.SessionAchievements)
             .ThenInclude(sa => sa.Achievement)
             .SingleOrDefaultAsync(x => x.Id == req.Id, ct);
@@ -28,16 +29,19 @@ public class UpdateSessionEndpoint(NexusDbContext db, IMapper mapper)
             return;
         }
 
-        // Mise à jour automatique des champs simples
+        // Mise à jour des champs simples (DateTime, Status, etc.)
         mapper.Map(req, sessionToEdit);
+
+        // Note : Si UpdateSessionDto contient une liste d'ActivityIds, 
+        // vous devrez gérer ici la synchronisation de la collection sessionToEdit.Activities
 
         await db.SaveChangesAsync(ct);
 
-        // On recharge pour avoir les noms d'activité à jour dans la réponse
+        // On recharge avec Activities pour que le Mapper puisse construire la réponse
         var result = await db.Sessions
-            .Include(s => s.Class)
-            .Include(s => s.Sport)
-            .Include(s => s.ExtraActivity)
+            .Include(s => s.Activities) 
+            .Include(s => s.SessionAchievements)
+            .ThenInclude(sa => sa.Achievement)
             .FirstAsync(s => s.Id == sessionToEdit.Id, ct);
 
         await Send.OkAsync(mapper.Map<GetSessionDto>(result), ct);
